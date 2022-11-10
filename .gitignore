@@ -1,1 +1,4 @@
 KDR_2022_simulator/
+__pycache__/
+airsim/__pycache__/
+multirotor_example/__pycache__/
