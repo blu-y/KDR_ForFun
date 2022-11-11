@@ -52,10 +52,10 @@ if WPP.IsFileOpen:
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
             client.moveToPositionAsync(float(new.X)/100, float(new.Y)/100, float(new.Z)/100*-1, 5).join()
             client.rotateToYawAsync(int(new.ZR)).join()
-            client.moveByVelocityZAsync(cos(degrees(int(new.ZR))), sin(degrees(int(new.ZR))), float(new.Z)/100*-1, 0.3)
-
+            #client.moveByVelocityZAsync(cos(degrees(int(new.ZR))), sin(degrees(int(new.ZR))), float(new.Z)/100*-1, 0.3)
         else:
             break
+
         dep_, = client.simGetImages([airsim.ImageRequest("0", airsim.ImageType.DepthPerspective, True, False),])
         dep = airsim.list_to_2d_float_array(dep_.image_data_float, dep_.width, dep_.height)
         dep = dep.reshape(dep_.height, dep_.width, 1)
