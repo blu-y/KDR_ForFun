@@ -43,13 +43,14 @@ if WPP.IsFileOpen:
         # Proceed If Next WayPoint Exist
         if new:
             con += 1
-            print(new.X, new.Y, new.Z)
-            print(new.Xoff, new.Yoff, new.Zoff)
-            print(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1)
-            print(float(new.X)/100, float(new.Y)/100, float(new.Z)/100, "\n")
+            print(new.X)
+            print(new.Y)
+            print(new.Z)
+            print(new.Xoff)
+            print(new.Zoff)
+            print(new.Yoff, "\n")
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
-            #client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
-            client.moveToPositionAsync(float(new.X)/100, float(new.Y)/100, float(new.Z)/100*-1, 5).join()
+            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
             client.rotateToYawAsync(int(new.ZR)).join()
 
         else:
@@ -59,15 +60,9 @@ if WPP.IsFileOpen:
     new = WPP.ReadData(1, "WP")
     way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
     client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
-
+   
 else:
     print("Failed To open WayPoint File")
+   
 client.hoverAsync().join()
 client.landAsync().join()
-
-
-'''
-client.moveByVelocityZAsync(-10, 0, -5, 3) 
-                            x, vy, z, duration
-
-'''

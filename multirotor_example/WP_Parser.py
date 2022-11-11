@@ -8,8 +8,8 @@ class WP_Struct:
     def __init__(self, isWP, _values):
         
         self.X = _values[0]
-        self.Z = _values[1]
-        self.Y = _values[2]
+        self.Y = _values[1]
+        self.Z = _values[2]
         self.Xoff = _values[3]
         self.Yoff = _values[4]
         self.Zoff = _values[5]
@@ -81,8 +81,8 @@ if __name__ == "__main__":
         print(Got_WP.Y)
         print(Got_WP.Z)
         print(Got_WP.Xoff)
-        print(Got_WP.Zoff)
         print(Got_WP.Yoff)
+        print(Got_WP.Zoff)
         print(Got_WP.ZR, "\n")
 
 
@@ -93,8 +93,8 @@ if __name__ == "__main__":
         print(Got_PS.Y)
         print(Got_PS.Z)
         print(Got_PS.Xoff)
-        print(Got_PS.Zoff)
         print(Got_PS.Yoff)
+        print(Got_PS.Zoff)
         print(Got_PS.XR) # not in use
         print(Got_PS.YR) # not in use
         print(Got_PS.ZR, "\n")
