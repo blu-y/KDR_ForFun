@@ -27,7 +27,7 @@ def os(old, new):
     x = (new.x-old.x)/dist
     y = (new.y-old.y)/dist
     z = (new.z-old.z)/dist
-    return x, y, z
+    return new.x+x, new.y+y, new.z+z
 
 # Desired Speed in m/s
 speed  = 5
@@ -59,14 +59,13 @@ class coordinate():
         self.new = old
     def read(self, con):
         self.new = WPP.ReadData(con, "WP")
-
-        (self.new.x - self.old.x)
-
-        self.X()
-        self.Y()
-        self.Z()
-        self.DX()
-        self.DY()
+        return self.new
+    def calc(self, xo, yo, zo):
+        self.new.x += xo
+        self.new.y += xo
+        self.new.x += xo
+        self.new = os(self.old, self.new)
+        self.x = float(self.new.X)/100
         return self.new
     def X(self):
         
