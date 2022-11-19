@@ -22,7 +22,7 @@ def get_frame(client, MAX_dist=30):
     dep[seg[:,:,0]==0] = 255
     return seg, dep
 
-def os(old, new):
+def ovs(old, new):
     dist = np.sqrt((new.x-old.x)**2+(new.y-old.y)**2+(new.z-old.z)**2)
     x = (new.x-old.x)/dist
     y = (new.y-old.y)/dist
@@ -40,7 +40,7 @@ client = airsim.MultirotorClient()
 client.confirmConnection()
 client.enableApiControl(True)
 client.armDisarm(True)
-
+RC = airsim.RCData()
 # TakeOff
 print("Taking Off")
 client.takeoffAsync().join()
@@ -59,23 +59,17 @@ class coordinate():
         self.new = old
     def read(self, con):
         self.new = WPP.ReadData(con, "WP")
+        self.new.X = float(self.new.X)/100
+        self.new.Y = float(self.new.Y)/100
+        self.new.Z = float(self.new.Z)/100
         return self.new
     def calc(self, xo, yo, zo):
         self.new.x += xo
         self.new.y += xo
         self.new.x += xo
-        self.new = os(self.old, self.new)
+        self.new = ovs(self.old, self.new)
         self.x = float(self.new.X)/100
         return self.new
-    def X(self):
-        
-        self.x = float(self.new.X)/100
-    def Y(self):
-        
-        self.y = float(self.new.X)/100
-    def Z(self):
-
-        self.z = -float(self.new.X)/100
     def DX(self):
         self.dx = cos(degrees(int(self.new.ZR)))
     def DY(self):
@@ -98,7 +92,7 @@ if WPP.IsFileOpen:
         if new:
             con += 1
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
-            client.moveToPositionAsync(coor.x, coor.y, coor.z, speed).join()
+            client.moveToPositionAsync(coor.new.X, coor.new.Y, coor.new.Z, speed).join()
             client.rotateToYawAsync(int(new.ZR)).join()
             coor.old = coor.new
             #client.moveByVelocityZAsync(coor.dx, coor.dy, coor.z, 0.3)
