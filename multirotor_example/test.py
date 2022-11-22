@@ -24,5 +24,5 @@ airsim.wait_key('Manual mode is setup. Press any key to send RC data to takeoff'
 client.moveByRC(rcdata = airsim.RCData(pitch = 0.0, throttle = 1.0, is_initialized = True, is_valid = True))
 
 airsim.wait_key('Set Yaw and pitch to 0.5')
-]
+
 client.moveByRC(rcdata = airsim.RCData(roll = 0.5, throttle = 1.0, yaw = 0.5, is_initialized = True, is_valid = True))
