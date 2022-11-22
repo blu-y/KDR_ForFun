@@ -20,24 +20,29 @@ def get_frame(client, MAX_dist=30):
     seg[seg[:,:,0]!=83] = 0
     seg[:,:,3] = 255
     dep[seg[:,:,0]==0] = 255
+    dep[dep>100] = 255
     return seg, dep
 
 def get_offset(img):
-    img = cv2.imread("1dep.png", cv2.IMREAD_GRAYSCALE)
     _, bin = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
     cnt, labels, stats, centroids = cv2.connectedComponentsWithStats(bin)
     try:
         if len(stats)>0: 
+            dst = np.zeros(img.shape)
             dy = stats[-1][0] + stats[-1][2]/2 - 256/2
             dz = stats[-1][1] + stats[-1][3]/2 - 144/2
+            cv2.rectangle(dst, (stats[-1][0], stats[-1][1], stats[-1][2], stats[-1][3]), (255, 255, 255))
+        else: print('fail')
     except: 
         print('no list')
-        return 0, 0
-    return dy, dz
+        return 0, 0, dst
+    return dy, dz, dst
 
 # Desired Speed in m/s
 desired_speed  = 5
-C = 0.5
+cp = 0.5
+C = 0.15
+Cz = 0.1
 
 # WayPoints Data Path
 docs = os.path.join(sys.path[0], "WayPoints.txt")
@@ -75,27 +80,34 @@ if WPP.IsFileOpen:
         except: pass
         # Proceed If Next WayPoint Exist
         if new:
-            x = int(old.Xoff)+(int(new.Xoff)-int(old.Xoff))*0.5
-            y = int(old.Yoff)+(int(new.Yoff)-int(old.Yoff))*0.5
+            x = int(old.Xoff)+(int(new.Xoff)-int(old.Xoff))*cp
+            y = int(old.Yoff)+(int(new.Yoff)-int(old.Yoff))*cp
             client.moveToPositionAsync(x, y, int(new.Zoff)*-1, 5).join()
-            time.sleep(2)
+            time.sleep(5)
             seg, dep = get_frame(client)
+            dy, dz, dst = get_offset(dep)
+            #plt.imshow(dep)
+            #plt.show()
             cv2.imshow("seg", seg)
             cv2.imshow("depth", dep)
+            cv2.imshow("dst", dst)
             cv2.imwrite(str(con)+"dep.png", dep)
             cv2.waitKey(1)
-            dy, dz = get_offset(dep)
             dx = cos(degrees(int(next.ZR)))*dy*C
             dy = sin(degrees(int(next.ZR)))*dy*C
+            dz = -dz*Cz
+            print(dx, dy, dz)
             # 사진으로 계산 y,z(상대) 차이를 계산하고, ZR로 절대 x_o, y_o, z_o를 계산
 
             con += 1
+            '''
             print(new.X)
             print(new.Y)
             print(new.Z)
             print(new.Xoff)
             print(new.Zoff)
             print(new.Yoff, "\n")
+            '''
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
             client.moveToPositionAsync(int(new.Xoff)+dx, int(new.Yoff)+dy, (int(new.Zoff)+dz)*-1, 5).join()
             client.rotateToYawAsync(int(next.ZR)).join()

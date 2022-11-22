@@ -71,9 +71,9 @@ class coordinate():
         self.x = float(self.new.X)/100
         return self.new
     def DX(self):
-        self.dx = cos(degrees(int(self.new.ZR)))
+        self.dx = cos(degrees(int(self.new.ZR)))*y
     def DY(self):
-        self.dy = sin(degrees(int(self.new.ZR)))
+        self.dy = sin(degrees(int(self.new.ZR)))*y
 
 # If Found WayPoint Data
 if WPP.IsFileOpen:
