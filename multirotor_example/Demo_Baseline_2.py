@@ -22,9 +22,22 @@ def get_frame(client, MAX_dist=30):
     dep[seg[:,:,0]==0] = 255
     return seg, dep
 
+def get_offset(img):
+    img = cv2.imread("1dep.png", cv2.IMREAD_GRAYSCALE)
+    _, bin = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
+    cnt, labels, stats, centroids = cv2.connectedComponentsWithStats(bin)
+    try:
+        if len(stats)>0: 
+            dy = stats[-1][0] + stats[-1][2]/2 - 256/2
+            dz = stats[-1][1] + stats[-1][3]/2 - 144/2
+    except: 
+        print('no list')
+        return 0, 0
+    return dy, dz
 
 # Desired Speed in m/s
 desired_speed  = 5
+C = 0.5
 
 # WayPoints Data Path
 docs = os.path.join(sys.path[0], "WayPoints.txt")
@@ -50,24 +63,30 @@ if WPP.IsFileOpen:
     print("GOGO")
 
     # LOOP
-    con = 0
+    old = WPP.ReadData(0, "WP")
+    con = 1
     while(1):
 
         # Ignore WaPoint #17
         if con == 17: con+=1
         # Get WayPoint Data index = con
         new = WPP.ReadData(con, "WP")
-
+        try: next = WPP.ReadData(con+1, "WP")
+        except: pass
         # Proceed If Next WayPoint Exist
         if new:
-            # 현재 acxz zxasasds
-            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
+            x = int(old.Xoff)+(int(new.Xoff)-int(old.Xoff))*0.5
+            y = int(old.Yoff)+(int(new.Yoff)-int(old.Yoff))*0.5
+            client.moveToPositionAsync(x, y, int(new.Zoff)*-1, 5).join()
             time.sleep(2)
             seg, dep = get_frame(client)
             cv2.imshow("seg", seg)
             cv2.imshow("depth", dep)
             cv2.imwrite(str(con)+"dep.png", dep)
             cv2.waitKey(1)
+            dy, dz = get_offset(dep)
+            dx = cos(degrees(int(next.ZR)))*dy*C
+            dy = sin(degrees(int(next.ZR)))*dy*C
             # 사진으로 계산 y,z(상대) 차이를 계산하고, ZR로 절대 x_o, y_o, z_o를 계산
 
             con += 1
@@ -78,8 +97,8 @@ if WPP.IsFileOpen:
             print(new.Zoff)
             print(new.Yoff, "\n")
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
-            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
-            client.rotateToYawAsync(int(new.ZR)).join()
+            client.moveToPositionAsync(int(new.Xoff)+dx, int(new.Yoff)+dy, (int(new.Zoff)+dz)*-1, 5).join()
+            client.rotateToYawAsync(int(next.ZR)).join()
             old = new
 
         else:
