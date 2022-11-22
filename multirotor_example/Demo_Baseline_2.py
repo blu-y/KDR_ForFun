@@ -60,6 +60,16 @@ if WPP.IsFileOpen:
 
         # Proceed If Next WayPoint Exist
         if new:
+            # 현재 
+            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
+            time.sleep(2)
+            seg, dep = get_frame(client)
+            cv2.imshow("seg", seg)
+            cv2.imshow("depth", dep)
+            cv2.imwrite(str(con)+"dep.png", dep)
+            cv2.waitKey(1)
+            # 사진으로 계산 y,z(상대) 차이를 계산하고, ZR로 절대 x_o, y_o, z_o를 계산
+
             con += 1
             print(new.X)
             print(new.Y)
@@ -68,17 +78,12 @@ if WPP.IsFileOpen:
             print(new.Zoff)
             print(new.Yoff, "\n")
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
-            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff)-1, int(new.Zoff)*-1, 5).join()
+            client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
             client.rotateToYawAsync(int(new.ZR)).join()
+            old = new
 
         else:
             break
-        time.sleep(2)
-        seg, dep = get_frame(client)
-        cv2.imshow("seg", seg)
-        cv2.imshow("depth", dep)
-        cv2.imwrite(str(con)+"dep.png", dep)
-        cv2.waitKey(1)
 
     # Return To First WayPoint
     new = WPP.ReadData(1, "WP")
