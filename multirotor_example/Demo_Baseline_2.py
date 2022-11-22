@@ -60,7 +60,7 @@ if WPP.IsFileOpen:
 
         # Proceed If Next WayPoint Exist
         if new:
-            # 현재 
+            # 현재 acxz zxasasds
             client.moveToPositionAsync(int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1, 5).join()
             time.sleep(2)
             seg, dep = get_frame(client)
