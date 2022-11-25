@@ -9,7 +9,7 @@ import time
 from math import cos, sin, degrees
 import matplotlib.pyplot as plt
 import numpy as np
-seg = []
+
 def root(a):
     return np.sign(a)*np.sqrt(abs(a))
 def get_frame(client, MAX_dist=30):
@@ -25,37 +25,36 @@ def get_frame(client, MAX_dist=30):
     dep[dep>100] = 255
     return seg, dep
 
-def get_offset(img):
-    global seg
-    _, bin = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
+def get_offset(dep, seg):
+    _, bin = cv2.threshold(dep, 0, 255, cv2.THRESH_OTSU)
     cnt, labels, stats, centroids = cv2.connectedComponentsWithStats(bin)
     # print(centroids)
     
     try:
         if len(stats)>0: 
-            dst = np.zeros(img.shape)
+            dst = np.zeros(dep.shape)
             # print("stats",stats)
             dy = stats[-1][0] + stats[-1][2]/2 - 256/2
             dz = stats[-1][1] + stats[-1][3]/2 - 144/2
             # cv2.rectangle(dst, (int(stats[-1][0]), int(stats[-1][1])), (int(stats[-1][2]), int(stats[-1][3])), (255, 255, 255))
             
             dst = cv2.circle(dst, (int(centroids[0][0]),int(centroids[0][1])), 2, (255,255,255), -1)
-            seg = cv2.circle(seg, (int(centroids[0][0]),int(centroids[0][1])), 2, (255,0,0), -1)
+            seg = cv2.circle(seg, (int(centroids[0][0]),int(centroids[0][1])), 5, (0,0,255), -1)
             off_y = int(centroids[0][0]) - int(dst.shape[1] / 2)
             off_z = int(centroids[0][1]) - int(dst.shape[0] / 2)
     
         else: print('fail')
     except: 
         print('no list')
-        return 0, 0, dst, 0 , 0
-    return dy, dz, dst, off_y, off_z
+        return 0, 0, dst, 0 , 0, seg
+    return dy, dz, dst, off_y, off_z, seg
     
 
 # Desired Speed in m/s
 desired_speed  = 5
 cp = 0.5
-C = 0.17
-Cz = 0.16
+C = 0.15
+Cz = 0.2
 D = 6
 
 
@@ -119,10 +118,10 @@ if WPP.IsFileOpen:
 
             client.moveToPositionAsync(direction[0], direction[1], int(new.Zoff)*-1, 2).join()
             client.rotateToYawAsync(float(new.ZR)).join()
-            time.sleep(0.5)
+            time.sleep(1)
             seg, dep = get_frame(client)
             
-            dy, dz, dst, off_y, off_z = get_offset(dep)
+            dy, dz, dst, off_y, off_z, seg = get_offset(dep, seg)
             # new_dis_y = abs(new.Y - my_pose_y) * off_y / f_y
             # new_dis_z = abs(new.Z - my_pose_z) * off_z / f_z
 
@@ -154,8 +153,8 @@ if WPP.IsFileOpen:
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
             # print(dx, dy, dz)
             print(f"Go to Gate Point {con}, dx={dx:.2f}, dy={dy:.2f}, dx={dz:.2f}")
-            client.moveToPositionAsync(new.X, new.Y, new.Z*-1, 3).join()
-            client.rotateToYawAsync(float(next.ZR)).join()
+            client.moveToPositionAsync(new.X, new.Y, new.Z*-1+0.2, 3).join()
+            #client.rotateToYawAsync(float(next.ZR)).join()
             old = new
 
         else:
