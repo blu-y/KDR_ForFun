@@ -9,7 +9,9 @@ import time
 from math import cos, sin, degrees
 import matplotlib.pyplot as plt
 import numpy as np
-
+seg = []
+def root(a):
+    return np.sign(a)*np.sqrt(abs(a))
 def get_frame(client, MAX_dist=30):
     dep_, = client.simGetImages([airsim.ImageRequest("0", airsim.ImageType.DepthPerspective, True, False),])
     dep = airsim.list_to_2d_float_array(dep_.image_data_float, dep_.width, dep_.height)
@@ -24,6 +26,7 @@ def get_frame(client, MAX_dist=30):
     return seg, dep
 
 def get_offset(img):
+    global seg
     _, bin = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
     cnt, labels, stats, centroids = cv2.connectedComponentsWithStats(bin)
     # print(centroids)
@@ -37,6 +40,7 @@ def get_offset(img):
             # cv2.rectangle(dst, (int(stats[-1][0]), int(stats[-1][1])), (int(stats[-1][2]), int(stats[-1][3])), (255, 255, 255))
             
             dst = cv2.circle(dst, (int(centroids[0][0]),int(centroids[0][1])), 2, (255,255,255), -1)
+            seg = cv2.circle(seg, (int(centroids[0][0]),int(centroids[0][1])), 2, (255,0,0), -1)
             off_y = int(centroids[0][0]) - int(dst.shape[1] / 2)
             off_z = int(centroids[0][1]) - int(dst.shape[0] / 2)
     
@@ -50,9 +54,9 @@ def get_offset(img):
 # Desired Speed in m/s
 desired_speed  = 5
 cp = 0.5
-C = 0.25
-Cz = 0.2
-D = 5
+C = 0.17
+Cz = 0.16
+D = 6
 
 
 # WayPoints Data Path
@@ -106,7 +110,7 @@ if WPP.IsFileOpen:
 
 
             # Middle Point
-            print("Go to Middle Point ", con)
+            print(f"Go to Middle Point {con}, ZR={int(new.ZR)}")
             direction = [float(new.X)/100 - cos(float(new.ZR)*np.pi/180) * D, float(new.Y)/100 - sin(float(new.ZR)*np.pi/180) * D] 
 
 
@@ -114,6 +118,8 @@ if WPP.IsFileOpen:
 
 
             client.moveToPositionAsync(direction[0], direction[1], int(new.Zoff)*-1, 2).join()
+            client.rotateToYawAsync(float(new.ZR)).join()
+            time.sleep(0.5)
             seg, dep = get_frame(client)
             
             dy, dz, dst, off_y, off_z = get_offset(dep)
@@ -122,14 +128,14 @@ if WPP.IsFileOpen:
 
             #plt.imshow(dep)
             #plt.show()
-            # cv2.imshow("seg", seg)
+            cv2.imshow("seg", seg)
             # cv2.imshow("depth", dep)
-            cv2.imshow("dst", dst)
+            # cv2.imshow("dst", dst)
             #cv2.imwrite(str(con)+"dep.png", dep)
             cv2.waitKey(1)
-            dx = sin(float(new.ZR)*np.pi/180)*np.sign(off_y)*np.sqrt(abs(off_y))*C
-            dy = cos(float(new.ZR)*np.pi/180)*np.sign(off_y)*np.sqrt(abs(off_y))*C
-            dz = -np.sign(off_z)*np.sqrt(abs(off_z))*Cz
+            dx = -cos((float(new.ZR)-90)*np.pi/180)*root(off_y)*C
+            dy = -sin((float(new.ZR)-90)*np.pi/180)*root(off_y)*C
+            dz = -root(off_z)*Cz
             # print(dx, dy, dz)
             # 사진으로 계산 y,z(상대) 차이를 계산하고, ZR로 절대 x_o, y_o, z_o를 계산
 
@@ -147,8 +153,8 @@ if WPP.IsFileOpen:
             new.Z = float(new.Z)/100+dz
             way_points.append([int(new.Xoff), int(new.Yoff), int(new.Zoff)*-1])
             # print(dx, dy, dz)
-            print("Go to Gate Point ", con)
-            client.moveToPositionAsync(new.X, new.Y, new.Z*-1, 8).join()
+            print(f"Go to Gate Point {con}, dx={dx:.2f}, dy={dy:.2f}, dx={dz:.2f}")
+            client.moveToPositionAsync(new.X, new.Y, new.Z*-1, 3).join()
             client.rotateToYawAsync(float(next.ZR)).join()
             old = new
 
