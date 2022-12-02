@@ -1,19 +1,22 @@
 #174fb8deea220eccedbd981c1779e62f84452ba6c94219a276e6a5d2c2e6a07b
 import airsim
 import numpy as np
-
+import pprint
 c = airsim.MultirotorClient()
+c.confirmConnection()
 c.enableApiControl(True)
 c.simGetVehiclePose()
 c.takeoffAsync().join()
-
+state = c.getMultirotorState()
+s = pprint.pformat(state)
+print("state: %s" % s)
 '''
 data = list(c.simGetObjectPose('KDR_Ring_2'))
 data = list(data[0])
 c.moveToPositionAsync(data[0], data[1], data[2], 7)
 '''
 
-with open("drone_ring_list.txt", "r") as f:
+with open("multirotor_example/drone_ring_list.txt", "r") as f:
     ring = f.readlines()  # ['첫 번째 줄\n', '두 번째 줄\n', '세 번째 줄'] 저장
     ring = list(map(lambda s: s.strip(), ring))
 
@@ -24,7 +27,7 @@ for i in range(64):
     c.moveToPositionAsync(data[0], data[1], data[2], 6.5).join()
 
 # 64번째부터 73번재까지 Ring간의 거리가 좀 가깝고 급격한 방향전환이 필요해서 느린 속도
-for i in range(64, 73):
+for i in range(64, 72):
     data = list(c.simGetObjectPose(ring[i]))
     data = list(data[0])
     c.moveToPositionAsync(data[0], data[1], data[2], 5).join()
