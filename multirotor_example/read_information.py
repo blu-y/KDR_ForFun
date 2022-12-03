@@ -24,13 +24,13 @@ with open("multirotor_example/drone_ring_list.txt", "r") as f:
 for i in range(64):
     data = list(c.simGetObjectPose(ring[i]))
     data = list(data[0])
-    c.moveToPositionAsync(data[0], data[1], data[2], 6.5).join()
+    c.moveToPositionAsync(data[0], data[1], data[2], 8).join()
 
 # 64번째부터 73번재까지 Ring간의 거리가 좀 가깝고 급격한 방향전환이 필요해서 느린 속도
 for i in range(64, 72):
     data = list(c.simGetObjectPose(ring[i]))
     data = list(data[0])
-    c.moveToPositionAsync(data[0], data[1], data[2], 5).join()
+    c.moveToPositionAsync(data[0], data[1], data[2], 8).join()
 
 # 마지막에 앞으로 조금 가줘야 기록 측정완료 후 Landing
 c.moveByVelocityAsync(-5.0, 0, -1.0, 2)
