@@ -4,4 +4,5 @@ __pycache__/
 airsim/__pycache__/
 multirotor_example/__pycache__/
 .vscode/
+src/
 *.pyc
